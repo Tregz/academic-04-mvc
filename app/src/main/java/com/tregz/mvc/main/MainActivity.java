@@ -2,63 +2,68 @@ package com.tregz.mvc.main;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.text.HtmlCompat;
 
 import android.os.Bundle;
-import android.util.Log;
+import android.text.method.ScrollingMovementMethod;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import com.tregz.mvc.R;
 import com.tregz.mvc.data.DataApple;
 import com.tregz.mvc.core.date.DateUtil;
 import com.tregz.mvc.list.ListApple;
-import com.tregz.mvc.view.ViewApple;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements ViewApple {
+import static androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY;
 
-    private final String TAG = MainActivity.class.getSimpleName();
-    private final ListApple listApple = new ListApple(this);
+public class MainActivity extends AppCompatActivity {
+
+    //private final String TAG = MainActivity.class.getSimpleName();
+    private TextView log;
+    private TextView sum;
+    private EditText editor;
+    private String input;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ListApple.getInstance().clear();
 
+        log = findViewById(R.id.log);
+        log.setMovementMethod(new ScrollingMovementMethod());
+        sum = findViewById(R.id.sum);
         DataApple apple1 = new DataApple(new Date());  // today
-        listApple.add(apple1);
-        listApple.add(apple1);
+        onAppleCreated(ListApple.getInstance().add(apple1));
         apple1.setColor(R.color.colorAccent);
-        Log.i(TAG, "La pomme 1 est comestible? " + apple1.edible());
-        Log.i(TAG, "La pomme 1 est de couleur: " + apple1.getColor());
-
         DataApple apple2 = new DataApple(DateUtil.addMonth(new Date(), -1)); // last month
-        listApple.add(apple2);
+        onAppleCreated(ListApple.getInstance().add(apple2));
         apple2.setColor(android.R.color.white);
-        Log.i(TAG, "La pomme 2 est comestible? " + apple2.edible());
-        Log.i(TAG, "La pomme 2 est de couleur: " + apple2.getColor());
-
         DataApple apple3 = new DataApple(null);
-        listApple.add(apple3);
+        onAppleCreated(ListApple.getInstance().add(apple3));
         apple3.setColor(R.color.colorPrimary);
-        Log.i(TAG, "La pomme 3 est comestible? " + apple3.edible());
-        Log.i(TAG, "La pomme 3 est de couleur: " + apple3.getColor());
-
-        DataApple apple4 = apple();
-        Log.i(TAG, "La pomme 4 est comestible? " + apple4.edible());
-        Log.i(TAG, "La pomme 4 est de couleur: " + apple4.getColor());
+        apple();
     }
 
-    @Override
-    public void onAppleCreated(int listSize, int setSize) {
-        Log.i(TAG, "Pomme ajoutée");
-        Log.i(TAG, "Taille de la liste: " + listSize);
-        Log.i(TAG, "Taille de l'ensemble: " + setSize);
+    private void onAppleCreated(DataApple apple) {
+        log.append(HtmlCompat.fromHtml("<b>Pomme ajoutée</b>", FROM_HTML_MODE_LEGACY));
+        String skeleton = "d MMMM yyyy";
+        SimpleDateFormat formatter = new SimpleDateFormat(skeleton, Locale.getDefault());
+        String day = apple.getRipe() != null ? formatter.format(apple.getRipe()) : null;
+        String unknown = "Non cueillie ou date de cueillette inconnue.";
+        String riped = day != null ? "Cueillie le " + day + "." : unknown;
+        log.append("\n" + riped + "\n");
+        String total = "Taille de la liste: " + ListApple.getInstance().getListCount();
+        sum.setText(total);
     }
 
-    public DataApple apple() {
+    public void apple() {
         DataApple apple = new DataApple(new Date());
         apple.setColor(R.color.colorPrimary);
-        listApple.add(apple);
-        return apple;
+        onAppleCreated(ListApple.getInstance().add(apple));
     }
 }
